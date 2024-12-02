@@ -1,0 +1,288 @@
+package com.carvalho.solution.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import com.carvalho.solution.domain.input.InputDTO;
+import com.carvalho.solution.domain.refcode.RefCodesEntity;
+import com.carvalho.solution.domain.tenant.TenantEntity;
+import com.carvalho.solution.domain.user.UserEntity;
+import com.carvalho.solution.domain.user.UserRole;
+import com.carvalho.solution.repositories.InputRepository;
+import com.carvalho.solution.repositories.RefCodesRepository;
+import com.carvalho.solution.repositories.TenantRepository;
+import com.carvalho.solution.repositories.UserRepository;
+import com.carvalho.solution.services.InputService;
+
+import jakarta.transaction.Transactional;
+
+@ExtendWith(SpringExtension.class)
+@SpringBootTest 
+@Transactional 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ActiveProfiles("test")
+public class InputServiceIntegrationTest {
+
+    @Autowired
+    private InputService inputService;
+
+    @Autowired
+    private InputRepository inputRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private TenantRepository tenantRepository;
+
+    @Autowired
+    RefCodesRepository refCodesRepository;
+
+    TenantEntity tenantEntity = new TenantEntity();
+
+    UserEntity userEntity = new UserEntity();
+
+    @BeforeAll
+    public  void setup() {
+        
+        tenantEntity.setName("carvalhoSolution");
+        tenantEntity.setDomain("carvalho_solution");
+        tenantEntity = tenantRepository.save(tenantEntity);
+
+        userEntity.setLogin("admin");
+        userEntity.setFirstName("Admin");
+        userEntity.setLastName("Admin");
+        userEntity.setEmail("admin@localhost");
+        userEntity.setPassword("admin");
+        userEntity.setRole(UserRole.ADMIN);
+        userEntity.setTenantId(tenantEntity.getId());
+        userEntity = userRepository.save(userEntity);
+    }
+
+
+    @Test
+    public void createInput() {
+
+        var paymentTypeCredit = new RefCodesEntity();
+        paymentTypeCredit.setType("INPUT_ENTITY");
+        paymentTypeCredit.setCode("paymentType");
+        paymentTypeCredit.setName("Credito");
+
+        refCodesRepository.save(paymentTypeCredit);
+
+
+        var ifoodCategory = new RefCodesEntity();
+        ifoodCategory.setType("INPUT_ENTITY");
+        ifoodCategory.setCode("inputCategory");
+        ifoodCategory.setName("Ifood");
+        
+        refCodesRepository.save(ifoodCategory);
+
+        var input = new InputDTO();
+        input.setInputValue(new BigDecimal("5000.00"));
+        input.setInputCategory(ifoodCategory.getName());
+        input.setEntryDate(LocalDateTime.now());
+        input.setDescription("Almoço");
+        input.setOrderQuantity(      40);
+        input.setPaymentType(paymentTypeCredit.getName());
+
+        var inputSave = inputService.saveInput(input, tenantEntity.getId());
+
+        assertEquals(inputSave.getDescription(), input.getDescription());
+        assertEquals(inputSave.getOrderQuantity(), input.getOrderQuantity());
+        assertEquals(inputSave.getInputValue(), input.getInputValue());
+        assertEquals(inputSave.getInputCategory(), input.getInputCategory());
+    }
+
+
+    public void updateInput() {
+
+        var paymentTypeCredit = new RefCodesEntity();
+        paymentTypeCredit.setType("INPUT_ENTITY");
+        paymentTypeCredit.setCode("PAYMENT_TYPE");
+        paymentTypeCredit.setName("Credito");  
+
+        refCodesRepository.save(paymentTypeCredit);
+
+
+        var ifoodCategory = new RefCodesEntity();
+        ifoodCategory.setType("INPUT_ENTITY");
+        ifoodCategory.setCode("INPUT_CATEGORY");
+        ifoodCategory.setName("Ifood");
+        
+        refCodesRepository.save(ifoodCategory);
+
+        var input = new InputDTO();
+        input.setInputValue(new BigDecimal("5000.00"));
+        input.setInputCategory(ifoodCategory.getName());
+        input.setEntryDate(LocalDateTime.now());
+        input.setDescription("Almoço");
+        input.setOrderQuantity(      40);
+        input.setInputCategory("");
+        input.setPaymentType(paymentTypeCredit.getName());
+
+        var inputSave = inputService.saveInput(input, tenantEntity.getId());
+
+        var paymentTypeDebit = new RefCodesEntity();
+        paymentTypeCredit.setType("INPUT_ENTITY");
+        paymentTypeCredit.setCode("PAYMENT_TYPE");
+        paymentTypeCredit.setName("Debito");
+
+        refCodesRepository.save(paymentTypeDebit);
+
+        var inputEdit = new InputDTO();
+        inputEdit.setInputValue(new BigDecimal("4000.00"));
+        inputEdit.setInputCategory(ifoodCategory.getName());
+        inputEdit.setEntryDate(LocalDateTime.now());
+        inputEdit.setDescription("Almoço");
+        inputEdit.setOrderQuantity(      78);
+        inputEdit.setInputCategory("");
+        inputEdit.setPaymentType(paymentTypeDebit.getName());
+
+        assertEquals(inputSave.getDescription(), inputEdit.getDescription());
+        assertEquals(inputSave.getOrderQuantity(), inputEdit.getOrderQuantity());
+        assertEquals(inputSave.getInputValue(), inputEdit.getInputValue());
+        assertEquals(inputSave.getInputCategory(), inputEdit.getInputCategory());
+    }
+
+    @Test
+    public void deleteInput() {
+
+        var paymentTypeCredit = new RefCodesEntity();
+        paymentTypeCredit.setType("INPUT_ENTITY");
+        paymentTypeCredit.setCode("PAYMENT_TYPE");
+        paymentTypeCredit.setName("Credito");
+        paymentTypeCredit.setRequired(true);
+
+        refCodesRepository.save(paymentTypeCredit);
+
+
+        var ifoodCategory = new RefCodesEntity();
+        ifoodCategory.setType("INPUT_ENTITY");
+        ifoodCategory.setCode("INPUT_CATEGORY");
+        ifoodCategory.setName("Ifood");
+        ifoodCategory.setRequired(true);
+        
+        refCodesRepository.save(ifoodCategory);
+
+        var input = new InputDTO();
+        input.setInputValue(new BigDecimal("5000.00"));
+        input.setInputCategory(ifoodCategory.getName());
+        input.setEntryDate(LocalDateTime.now());
+        input.setDescription("Almoço");
+        input.setOrderQuantity(      40);
+        input.setInputCategory("");
+        input.setPaymentType(paymentTypeCredit.getName());
+
+        var inputSave = inputService.saveInput(input, tenantEntity.getId());
+
+
+        inputService.deleteInput(inputSave.getId(), tenantEntity.getId());
+
+        var resultInput = inputRepository.findByIdAndTenantId(inputSave.getId(), tenantEntity.getId());
+
+        assertEquals(null, resultInput);
+    }
+
+    @Test
+    public void findByIdInput() {
+
+        var paymentTypeCredit = new RefCodesEntity();
+        paymentTypeCredit.setType("INPUT_ENTITY");
+        paymentTypeCredit.setCode("PAYMENT_TYPE");
+        paymentTypeCredit.setName("Credito");
+        paymentTypeCredit.setRequired(true);
+
+        refCodesRepository.save(paymentTypeCredit);
+
+
+        var ifoodCategory = new RefCodesEntity();
+        ifoodCategory.setType("INPUT_ENTITY");
+        ifoodCategory.setCode("INPUT_CATEGORY");
+        ifoodCategory.setName("Ifood");
+        ifoodCategory.setRequired(true);
+        
+        refCodesRepository.save(ifoodCategory);
+
+        var input = new InputDTO();
+        input.setInputValue(new BigDecimal("5000.00"));
+        input.setInputCategory(ifoodCategory.getName());
+        input.setEntryDate(LocalDateTime.now());
+        input.setDescription("Almoço");
+        input.setOrderQuantity(      40);
+        input.setInputCategory("");
+        input.setPaymentType(paymentTypeCredit.getName());
+
+        var inputSave = inputService.saveInput(input, tenantEntity.getId());
+
+        var resultInput = inputService.findInputById(inputSave.getId(), tenantEntity.getId());
+
+        assertEquals(inputSave.getDescription(), resultInput.getDescription());
+        assertEquals(inputSave.getOrderQuantity(), resultInput.getOrderQuantity());
+        assertEquals(inputSave.getInputValue(), resultInput.getInputValue());
+        assertEquals(inputSave.getInputCategory(), resultInput.getInputCategory());
+    }
+
+
+    // @Test 
+    // public void findAllInputByTenantId() {
+    //     var paymentTypeCredit = new RefCodesEntity();
+    //     paymentTypeCredit.setTenantId(tenantEntity.getId());
+    //     paymentTypeCredit.setType("INPUT_ENTITY");
+    //     paymentTypeCredit.setCode("PAYMENT_TYPE");
+    //     paymentTypeCredit.setName("Credito");
+
+    //     refCodesRepository.save(paymentTypeCredit);
+
+
+    //     var ifoodCategory = new RefCodesEntity();
+    //     ifoodCategory.setTenantId(tenantEntity.getId());
+    //     ifoodCategory.setType("INPUT_ENTITY");
+    //     ifoodCategory.setCode("INPUT_CATEGORY");
+    //     ifoodCategory.setName("Ifood");
+        
+    //     refCodesRepository.save(ifoodCategory);
+
+    //     var input = new InputEntity();
+    //     input.setInputValue(new BigDecimal("5000.00"));
+    //     input.setInputCategory(ifoodCategory.getName());
+    //     input.setEntryDate(LocalDateTime.now());
+    //     input.setDescription("Almoço");
+    //     input.setOrderQuantity(      40);
+    //     input.setInputCategory("");
+    //     input.setPaymentType(paymentTypeCredit.getName());
+        
+    //     var input2 = new InputEntity();
+    //     input2.setInputValue(new BigDecimal("5000.00"));
+    //     input2.setInputCategory(ifoodCategory.getName());
+    //     input2.setEntryDate(LocalDateTime.now());
+    //     input2.setDescription("Almoço");
+    //     input2.setOrderQuantity(      40);
+    //     input2.setInputCategory("");
+    //     input2.setPaymentType(paymentTypeCredit.getName());
+
+    //     var input3 = new InputEntity();
+    //     input3.setInputValue(new BigDecimal("4500.00"));
+    //     input3.setInputCategory(ifoodCategory.getName());
+    //     input3.setEntryDate(LocalDateTime.now());
+    //     input3.setDescription("Janta");
+    //     input3.setOrderQuantity(      45);
+    //     input3.setInputCategory("");
+    //     input3.setPaymentType(paymentTypeCredit.getName());
+
+    //     inputRepository.saveAll(List.of(input, input2, input3));
+
+    //     var resultInput = inputService.findAllInputsByTenantId(tenantEntity.getId());
+    // }
+    
+    
+}

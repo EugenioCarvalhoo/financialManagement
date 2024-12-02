@@ -1,0 +1,11 @@
+package com.carvalho.solution;
+
+
+// @SpringBootTest
+class AuthApplicationTests {
+
+	// @Test
+	// void contextLoads() {
+	// }
+
+}

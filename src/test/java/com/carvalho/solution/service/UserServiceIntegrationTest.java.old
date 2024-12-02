@@ -1,0 +1,197 @@
+package com.carvalho.solution.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import com.carvalho.solution.domain.tenant.TenantEntity;
+import com.carvalho.solution.domain.user.UserDTO;
+import com.carvalho.solution.domain.user.UserRole;
+import com.carvalho.solution.exception.AppBusinessException;
+import com.carvalho.solution.repositories.TenantRepository;
+import com.carvalho.solution.repositories.UserRepository;
+import com.carvalho.solution.services.UserService;
+
+import jakarta.transaction.Transactional;
+
+
+@ExtendWith(SpringExtension.class)
+@SpringBootTest 
+@Transactional 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ActiveProfiles("test")
+public class UserServiceIntegrationTest {
+
+
+    @Autowired
+    TenantRepository tenantRepository;
+
+    TenantEntity tenantEntity = new TenantEntity();
+
+    @Autowired
+    UserService userService;
+
+
+    @Autowired
+    UserRepository userRepository;
+
+    @BeforeAll
+    public  void setup() {
+        tenantEntity.setName("carvalhoSolution");
+        tenantEntity.setDomain("carvalho_solution");
+        tenantEntity = tenantRepository.save(tenantEntity);
+    }
+
+    @Test
+    public void saveUser() {
+        UserDTO  user = new UserDTO();
+        user.setFirstName("John");
+        user.setLastName("Smith");
+        user.setLogin("johnsmith");
+        user.setRole(UserRole.USER_PLUS);
+        user.setPassword("123456");
+        user.setEmail("wO9fX@example.com");
+
+        var newUser = userService.saveUser(user, tenantEntity.getId());
+
+        assertEquals("John", newUser.getFirstName());
+        assertEquals("Smith", newUser.getLastName());
+        assertEquals("johnsmith", newUser.getLogin());
+        assertEquals(UserRole.USER_PLUS, newUser.getRole());
+        assertEquals("wO9fX@example.com", newUser.getEmail());
+    }
+
+    @Test 
+    public void validationDuplicateUser() {
+        UserDTO  user = new UserDTO();
+        user.setFirstName("John");
+        user.setLastName("Smith");
+        user.setLogin("johnsmith");
+        user.setRole(UserRole.USER_PLUS);
+        user.setPassword("123456");
+        user.setEmail("wO9fX@example.com");
+
+        UserDTO  userDuplicateEmail = new UserDTO();
+        userDuplicateEmail.setFirstName("John");
+        userDuplicateEmail.setLastName("Smith");
+        userDuplicateEmail.setLogin("johnsmith2");
+        userDuplicateEmail.setRole(UserRole.USER_PLUS);
+        userDuplicateEmail.setPassword("123456");
+        userDuplicateEmail.setEmail("wO9fX@example.com");
+
+        UserDTO  userDuplicateLogin = new UserDTO();
+        userDuplicateLogin.setFirstName("John");
+        userDuplicateLogin.setLastName("Smith");
+        userDuplicateLogin.setLogin("johnsmith");
+        userDuplicateLogin.setRole(UserRole.USER_PLUS);
+        userDuplicateLogin.setPassword("123456");
+        userDuplicateLogin.setEmail("wO9fX@example.com.br");
+
+        userService.saveUser(user, tenantEntity.getId());
+
+        assertThrows(AppBusinessException.class, () -> {
+            userService.saveUser(userDuplicateEmail, tenantEntity.getId());
+        });
+
+        assertThrows(AppBusinessException.class, () -> {
+            userService.saveUser(userDuplicateLogin, tenantEntity.getId());
+        });
+    }
+
+    @Test 
+    public void permitDuplicateUserFromDifferentTenant() {
+        UserDTO  user = new UserDTO();
+        user.setFirstName("John");
+        user.setLastName("Smith");
+        user.setLogin("johnsmith");
+        user.setRole(UserRole.USER_PLUS);
+        user.setPassword("123456");
+        user.setEmail("wO9fX@example.com");
+
+        userService.saveUser(user, tenantEntity.getId());
+
+
+        TenantEntity tenantEntityFly = TenantEntity.builder()
+        .domain("fly_shop")
+        .name("flyShop").build();
+        tenantEntityFly = tenantRepository.save(tenantEntityFly);
+
+        UserDTO  userDuplicateEmail = new UserDTO();
+        userDuplicateEmail.setFirstName("John");
+        userDuplicateEmail.setLastName("Smith");
+        userDuplicateEmail.setLogin("johnsmith2");
+        userDuplicateEmail.setRole(UserRole.USER_PLUS);
+        userDuplicateEmail.setPassword("123456");
+        userDuplicateEmail.setEmail("wO9fX@example.com");
+
+        UserDTO userFly = userService.saveUser(userDuplicateEmail, tenantEntityFly.getId());
+
+        assertEquals(user.getEmail(), userFly.getEmail());
+
+        TenantEntity tenantEntityIceFash = TenantEntity.builder()
+        .domain("ice_fash")
+        .name("iceFash").build();
+        tenantEntityIceFash = tenantRepository.save(tenantEntityIceFash);
+
+        UserDTO  userDuplicateLogin = new UserDTO();
+        userDuplicateLogin.setFirstName("John");
+        userDuplicateLogin.setLastName("Smith");
+        userDuplicateLogin.setLogin("johnsmith");
+        userDuplicateLogin.setRole(UserRole.USER_PLUS);
+        userDuplicateLogin.setPassword("123456");
+        userDuplicateLogin.setEmail("wO9fX@example.com.br");
+
+        
+        UserDTO userICeFash = userService.saveUser(userDuplicateLogin, tenantEntityIceFash.getId());
+        
+        assertEquals(user.getLogin(), userICeFash.getLogin());
+    }
+
+    @Test 
+    public void getUsers() {
+        UserDTO  user = new UserDTO();
+        user.setFirstName("John");
+        user.setLastName("Smith");
+        user.setLogin("johnsmith");
+        user.setRole(UserRole.USER_PLUS);
+        user.setPassword("123456");
+        user.setEmail("wO9fX@example.com");
+
+        UserDTO  user2 = new UserDTO();
+        user2.setFirstName("Adam");
+        user2.setLastName("Sendler");
+        user2.setLogin("adam");
+        user2.setRole(UserRole.USER_PLUS);
+        user2.setPassword("123456");
+        user2.setEmail("adamsendler@example.com");
+        user2.setRole(UserRole.USER);
+
+        UserDTO  user3 = new UserDTO();
+        user3.setFirstName("Nick");
+        user3.setLastName("Simmons");
+        user3.setLogin("nick");
+        user3.setPassword("123456");
+        user3.setEmail("nicksimmons@example.com.br");
+        user3.setRole(UserRole.USER);
+
+        user = userService.saveUser(user, tenantEntity.getId());
+        user2 = userService.saveUser(user2, tenantEntity.getId());
+        user3 = userService.saveUser(user3, tenantEntity.getId());
+
+        List<UserDTO> users = userService.getUsers(tenantEntity.getId());
+
+        assertEquals(3, users.size());
+       
+    }
+    
+}

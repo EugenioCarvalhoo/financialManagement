@@ -25,9 +25,9 @@ services:
   app:
     build:
       context: .
-      dockerfile: src/main/docker/Dockerfile
+      dockerfile: ./Dockerfile
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5432/financial_management
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5432/financialManagement
       SPRING_DATASOURCE_USERNAME: financialManagement
       SPRING_DATASOURCE_PASSWORD: 
     ports:

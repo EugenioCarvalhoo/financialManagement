@@ -11,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.carvalho.solution.domain.converter.UserRoleStringConverter;
 import com.carvalho.solution.domain.tenant.TenantEntity;
 
 import java.util.Collection;
@@ -48,6 +49,7 @@ public class UserEntity implements UserDetails {
     @Column( name = "temporary_password")
     private String temporaryPassword;
 
+    @Convert(converter = UserRoleStringConverter.class)
     @Column(name = "role", nullable = false)
     private UserRole role = UserRole.OPERATIONAL;
 

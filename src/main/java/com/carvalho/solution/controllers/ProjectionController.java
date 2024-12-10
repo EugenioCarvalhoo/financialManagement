@@ -13,6 +13,8 @@ import com.carvalho.solution.domain.projection.ProjectionDTO;
 import com.carvalho.solution.services.ProjectionService;
 import com.carvalho.solution.util.UserContext;
 
+import jakarta.validation.Valid;
+
 import lombok.AllArgsConstructor;
 
 import java.util.List;
@@ -38,12 +40,12 @@ public class ProjectionController {
     }
 
     @PostMapping
-    public ResponseEntity<ProjectionDTO> save(@RequestBody ProjectionDTO projectionDTO){
+    public ResponseEntity<ProjectionDTO> save(@RequestBody @Valid ProjectionDTO projectionDTO){
         return ResponseEntity.status(HttpStatus.CREATED).body(projectionService.save(projectionDTO, UserContext.getTenantId()));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProjectionDTO> update(@RequestBody ProjectionDTO projectionDTO, @PathVariable Long id){
+    public ResponseEntity<ProjectionDTO> update(@RequestBody @Valid ProjectionDTO projectionDTO, @PathVariable Long id){
         return ResponseEntity.ok(projectionService.update(projectionDTO, id, UserContext.getTenantId()));
     }
 

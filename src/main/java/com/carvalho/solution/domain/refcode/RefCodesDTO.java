@@ -1,6 +1,7 @@
 package com.carvalho.solution.domain.refcode;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,7 +16,8 @@ public class RefCodesDTO {
     @NotBlank
     private String name;
     private String description;
-    private boolean whitTenantId = false; 
+    @NotNull
+    private boolean whitTenantId;
+    private Boolean activeFlag;
     // private Boolean required;
-    // private Boolean activeFlag;
 }

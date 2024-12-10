@@ -68,7 +68,6 @@ CREATE TABLE "projection" (
 	PRIMARY KEY("id")
 );
 
-
 CREATE TABLE "users" (
 	"id" BIGSERIAL,
 	"last_name" VARCHAR(100) NOT NULL,
@@ -77,7 +76,7 @@ CREATE TABLE "users" (
 	"login" VARCHAR(150),
 	"password" VARCHAR(255) NOT NULL,
 	"temporary_password" VARCHAR(255),
-	"role" VARCHAR(10) NOT NULL DEFAULT 'USER',
+	"role" VARCHAR NOT NULL,
 	"active_flag" BOOLEAN NOT NULL DEFAULT true,
 	"created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	"updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -88,7 +87,7 @@ CREATE TABLE "users" (
 
 CREATE TABLE "order_canceled" (
 	"id" BIGSERIAL,
-	"amount" INTEGER NOT NULL,
+	"quantity" INTEGER NOT NULL,
 	"order_canceled_date" DATE NOT NULL,
 	"created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	"updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,

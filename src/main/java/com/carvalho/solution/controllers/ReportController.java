@@ -9,6 +9,7 @@ import com.carvalho.solution.domain.report.ReportItemDTO;
 import com.carvalho.solution.services.ReportService;
 import com.carvalho.solution.util.UserContext;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
@@ -20,7 +21,7 @@ public class ReportController {
 
 
     @PostMapping
-    public ReportItemDTO save(@RequestBody ReportItemDTO reportItemDTO) {
+    public ReportItemDTO save( @Valid @RequestBody ReportItemDTO reportItemDTO) {
         return reportService.save(reportItemDTO, UserContext.getTenantId());
     }
 
